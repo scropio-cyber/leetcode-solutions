@@ -1,38 +1,53 @@
 class Solution {
 public:
-bool solve(string &s,string &p,int i,int j)
-{
-    int m=s.length();
-    int n=p.length();
-    
-    //base case
-    if(j==n)
-    {
-        if(i==m)
-        return(true);
-        else
-        return(false);
-    }
-    bool match=false;
-    if(i<m && ((s[i]==p[j]) || p[j]=='.'))
-    match=true;
+    vector<vector<int>> dp;
 
-    if((j+1)<n && p[j+1]=='*')
-    {
-        //if x*==""
-        if(solve(s,p,i,j+2))
-        return(true);
+    bool solve(string& s, string& p, int i, int j) {
 
-        if(match)
-        return(solve(s,p,i+1,j));
+        // Pattern completely processed
+        if (j == p.size()) {
+            return i == s.size();
+        }
+
+        // Already calculated
+        if (dp[i][j] != -1) {
+            return dp[i][j];
+        }
+
+        // Does current character match?
+        bool firstMatch =
+            (i < s.size() &&
+             (s[i] == p[j] || p[j] == '.'));
+
+        // Next character is '*'
+        if (j + 1 < p.size() && p[j + 1] == '*') {
+
+            // Option 1: use '*' zero times
+            bool skip = solve(s, p, i, j + 2);
+
+            // Option 2: use '*' one or more times
+            bool use =
+                firstMatch &&
+                solve(s, p, i + 1, j);
+
+            return dp[i][j] = skip || use;
+        }
+
+        // Normal character or '.'
+        if (firstMatch) {
+            return dp[i][j] = solve(s, p, i + 1, j + 1);
+        }
+
+        return dp[i][j] = false;
     }
-    
-    if(match)
-    return(solve(s,p,i+1,j+1));
-    else
-    return(false);
-}
+
     bool isMatch(string s, string p) {
-        return(solve(s,p,0,0));
+
+        dp.assign(
+            s.size() + 1,
+            vector<int>(p.size() + 1, -1)
+        );
+
+        return solve(s, p, 0, 0);
     }
 };
