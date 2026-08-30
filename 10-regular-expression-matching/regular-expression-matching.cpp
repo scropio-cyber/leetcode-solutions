@@ -1,53 +1,47 @@
 class Solution {
 public:
-    vector<vector<int>> dp;
+    int dp[21][21];
+    bool solve(int i, int j, string& s, string& p){
+        if(i == s.size() && j == p.size())
+            return dp[i][j] = true;
 
-    bool solve(string& s, string& p, int i, int j) {
+        if(j == p.size())
+            return dp[i][j] = false;
 
-        // Pattern completely processed
-        if (j == p.size()) {
-            return i == s.size();
+        if(i == s.size()){
+            if(j + 1 < p.size() && p[j + 1] == '*')
+                return dp[i][j] = solve(i, j + 2, s, p);
+
+            return dp[i][j] = false;
         }
 
-        // Already calculated
-        if (dp[i][j] != -1) {
+        if(dp[i][j] != -1)
             return dp[i][j];
+
+        // If current character is followed by *
+        if(j + 1 < p.size() && p[j + 1] == '*'){
+            if(s[i] == p[j] || p[j] == '.'){
+                return dp[i][j] = solve(i, j + 2, s, p) ||
+                       solve(i + 1, j, s, p);
+            }
+            else{
+                return dp[i][j] = solve(i, j + 2, s, p);
+            }
         }
 
-        // Does current character match?
-        bool firstMatch =
-            (i < s.size() &&
-             (s[i] == p[j] || p[j] == '.'));
-
-        // Next character is '*'
-        if (j + 1 < p.size() && p[j + 1] == '*') {
-
-            // Option 1: use '*' zero times
-            bool skip = solve(s, p, i, j + 2);
-
-            // Option 2: use '*' one or more times
-            bool use =
-                firstMatch &&
-                solve(s, p, i + 1, j);
-
-            return dp[i][j] = skip || use;
+        if(s[i] == p[j]){
+            return dp[i][j] = solve(i + 1, j + 1, s, p);
         }
 
-        // Normal character or '.'
-        if (firstMatch) {
-            return dp[i][j] = solve(s, p, i + 1, j + 1);
+        if(p[j] == '.'){
+            return dp[i][j] = solve(i + 1, j + 1, s, p);
         }
 
         return dp[i][j] = false;
     }
 
     bool isMatch(string s, string p) {
-
-        dp.assign(
-            s.size() + 1,
-            vector<int>(p.size() + 1, -1)
-        );
-
-        return solve(s, p, 0, 0);
+        memset(dp, -1, sizeof(dp));
+        return solve(0, 0, s, p);
     }
 };
